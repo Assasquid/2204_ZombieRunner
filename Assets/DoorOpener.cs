@@ -4,82 +4,70 @@ using UnityEngine;
 
 public class DoorOpener : MonoBehaviour
 {
-    [SerializeField] float doorMovementSpeed = 1f;
-    [SerializeField] float doorMovementDuration = 1f;
-    [SerializeField] float doorWaitingTime = 3f;
-    //[SerializeField] float doorCoefficient = 0.2f;
-    
-    //Rigidbody rb;
+    [SerializeField] float upDistance = 2.5f; 
+    [SerializeField] float speed = 2.0f;
+    [SerializeField] float timeOpened = 2.0f;
 
-    bool isOpened;
-    bool isOpening;
-    bool isClosing;
-    bool isClosed;
+    bool moving = false;
+    bool opening = true;
+    Vector3 endPos;
+    Vector3 startPos;
+    float delay = 0.0f;
 
     void Start()
     {
-        isOpened = false;
-        isOpening = false;
-        isClosing = false;
-
-        //rb = GetComponent<Rigidbody>();
+        startPos = transform.position;
+        endPos = startPos + new Vector3(0, upDistance, 0);
     }
 
-    void OnTriggerEnter(Collider other)
-    {  
-        if(other.tag == "Player" && isOpened == false)
+    void Update()
+    {
+        if(moving)
         {
-            StartCoroutine(OpenDoor());
+            if(opening)
+            {
+                MoveDoor(endPos);
+            }
+
+            else
+            {
+                MoveDoor(startPos);
+            }
         }
     }
 
-    IEnumerator OpenDoor()
+    void OnTriggerEnter(Collider other) 
     {
-        isOpening = true;
-        Debug.Log("Door opening");
-
-        yield return new WaitForSeconds(doorMovementDuration);
-        
-        Debug.Log("Door opened");
-        isOpened = true;
-        isOpening = false;
-
-        StartCoroutine(WaitToClose());
-    }
-
-    IEnumerator WaitToClose()
-    {
-        Debug.Log("Start waiting");
-        yield return new WaitForSeconds(doorWaitingTime);
-        Debug.Log("Done waiting");
-        
-        StartCoroutine(CloseDoor());
-    }
-
-    IEnumerator CloseDoor()
-    {
-        isClosing = true;
-        Debug.Log("Door closing");
-
-        yield return new WaitForSeconds(doorMovementDuration);
-
-        Debug.Log("Door closed");
-        isOpened = false;
-        isClosing = false;
-    }
-
-    void FixedUpdate()
-    {
-        if(isOpening == true)
+        if(other.tag == "Player")
         {
-            //rb.MovePosition(transform.position + Vector3.up * doorCoefficient * doorMovementSpeed * Time.fixedTime);
-            transform.Translate(0, Time.fixedTime * doorMovementSpeed, 0);
+            moving = true;
+        }    
+    }
+
+    void MoveDoor(Vector3 goalPos)
+    {
+        float distance = Vector3.Distance(transform.position, goalPos);
+        if(distance > .1f)
+        {
+            transform.position = Vector3.Lerp(transform.position, goalPos, speed * Time.deltaTime);
         }
-
-        if(isClosing == true)
+        
+        else
         {
-            //rb.MovePosition(transform.position + Vector3.down * doorCoefficient * doorMovementSpeed * Time.fixedTime);
-            transform.Translate(0, -Time.fixedTime * doorMovementSpeed, 0);
+            if(opening)
+            {
+                delay += Time.deltaTime;
+                if(delay > timeOpened)
+                {
+                    opening = false;
+                }
+            }
+
+            else
+            {
+                moving = false;
+                opening = true;
+            }
         }
     }
 }
