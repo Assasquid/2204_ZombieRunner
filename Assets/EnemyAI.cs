@@ -6,10 +6,12 @@ using UnityEngine.AI;
 public class EnemyAI : MonoBehaviour
 {
     [SerializeField] Transform target;
-    [SerializeField] float chaseRange = 5f;
+    [SerializeField] float chaseRange = 15f;
+    [SerializeField] float attackRange = 2f;
 
     NavMeshAgent navMeshAgent;
     float distanceToTarget = Mathf.Infinity;
+    bool isProvoked = false;
 
     void Start()
     {
@@ -20,10 +22,38 @@ public class EnemyAI : MonoBehaviour
     {
         distanceToTarget = Vector3.Distance(target.position, transform.position);
         
-        if (distanceToTarget < chaseRange)
+        if (isProvoked)
         {
-            navMeshAgent.SetDestination(target.position);
+            EngageTarget();
         }
+        
+        else if (distanceToTarget < chaseRange)
+        {
+            isProvoked = true;
+        }
+    }
+
+    void EngageTarget()
+    {
+        if(distanceToTarget >= attackRange)
+        {
+            ChaseTarget();
+        }
+
+        if(distanceToTarget < attackRange)
+        {
+            AttackTarget();
+        }
+    }
+
+    void ChaseTarget()
+    {
+        navMeshAgent.SetDestination(target.position);
+    }
+
+    void AttackTarget()
+    {
+        Debug.Log("Attacking");
     }
 
     void OnDrawGizmosSelected() 
